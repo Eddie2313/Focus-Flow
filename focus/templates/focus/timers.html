@@ -1,0 +1,48 @@
+{% extends "focus/base.html" %}
+
+{% block content %}
+<section class="hero timers-hero">
+    <h1>Choose Timer</h1>
+    <p>Pick your focus style or make your own.</p>
+</section>
+
+<div class="timer-options">
+
+    <div class="timer-choice">
+        <h3>Pomodoro</h3>
+        <p>25 min focus / 5 min break</p>
+        <a class="btn" href="{% url 'dashboard' %}?minutes=25&break=5&name=Pomodoro">Start</a>
+    </div>
+
+    <div class="timer-choice">
+        <h3>Deep Work</h3>
+        <p>50 min focus / 10 min break</p>
+        <a class="btn" href="{% url 'dashboard' %}?minutes=50&break=10&name=Deep Work">Start</a>
+    </div>
+
+    <div class="timer-choice">
+        <h3>Quick Sprint</h3>
+        <p>15 min focus / 3 min break</p>
+        <a class="btn" href="{% url 'dashboard' %}?minutes=15&break=3&name=Quick Sprint">Start</a>
+    </div>
+
+    <div class="timer-choice">
+        <h3>Study Block</h3>
+        <p>45 min focus / 15 min break</p>
+        <a class="btn" href="{% url 'dashboard' %}?minutes=45&break=15&name=Study Block">Start</a>
+    </div>
+
+    <div class="timer-choice custom-timer">
+        <h3>Custom Timer</h3>
+        <p>Choose your own focus and break length.</p>
+
+        <form class="custom-inputs" action="{% url 'dashboard' %}" method="get">
+            <input class="input" type="number" name="minutes" min="1" placeholder="Focus min" required>
+            <input class="input" type="number" name="break" min="1" placeholder="Break min" required>
+            <input type="hidden" name="name" value="Custom Timer">
+            <button class="btn" type="submit">Start</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

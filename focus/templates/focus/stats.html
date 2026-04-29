@@ -1,0 +1,58 @@
+{% extends "focus/base.html" %}
+
+{% block content %}
+<section class="hero page-hero">
+    <h1>Focus Stats</h1>
+    <p>Track your sessions and progress.</p>
+</section>
+
+<div class="page-wrap stats-grid">
+
+    <div class="card stat-card">
+        <h2>Today</h2>
+        <p class="stat-number">{{ sessions_completed }}</p>
+        <p class="muted">Sessions Completed</p>
+    </div>
+
+    <div class="card stat-card">
+        <h2>Focus Time</h2>
+        <p class="stat-number">{{ total_focus_time }}</p>
+        <p class="muted">Total focused today</p>
+    </div>
+
+    <div class="card stat-card">
+        <h2>Tasks Done</h2>
+        <p class="stat-number">{{ tasks_done }}</p>
+        <p class="muted">Completed tasks</p>
+    </div>
+
+</div>
+
+<div class="page-wrap">
+    <div class="card section-card">
+        <h2>Weekly Progress</h2>
+        <p class="muted">Your chart will go here later.</p>
+
+        <div class="progress-row">
+            <span>Mon</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 70%;"></div>
+            </div>
+        </div>
+
+        <div class="progress-row">
+            <span>Tue</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 40%;"></div>
+            </div>
+        </div>
+
+        <div class="progress-row">
+            <span>Wed</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 20%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

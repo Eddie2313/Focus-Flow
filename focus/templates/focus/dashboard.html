@@ -1,0 +1,208 @@
+{% extends "focus/base.html" %}
+
+{% block content %}
+
+<section class="timer-page">
+
+    <div class="timer-mode-card">
+        <div class="mode-icon">☕</div>
+        <div>
+            <h2 id="timer-name">Pomodoro</h2>
+            <p id="timer-info">25 min focus • 5 min break</p>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <a href="{% url 'timers' %}">Change Timer</a>
+        <a href="{% url 'tasks' %}">Tasks</a>
+        <a href="{% url 'stats' %}">Stats</a>
+    </div>
+
+    <p class="focus-label">FOCUS TIME</p>
+
+    <div class="big-timer" id="timer">25:00</div>
+
+    <div class="coffee-wrap">
+        <div class="coffee-cup">
+            <div class="coffee-liquid" id="coffee-liquid"></div>
+            <div class="lock-text">LOCK IN</div>
+        </div>
+        <div class="cup-handle"></div>
+        <div class="coffee-glow"></div>
+    </div>
+
+    <div class="timer-controls">
+        <button class="circle-btn" onclick="resetTimer()">↺</button>
+        <button class="play-btn" onclick="startTimer()">▶</button>
+        <button class="circle-btn" onclick="pauseTimer()">Ⅱ</button>
+    </div>
+
+    <div id="timer-notification" class="timer-notification"></div>
+
+</section>
+
+<script>
+const alarm = new Audio("https://www.soundjay.com/buttons/sounds/beep-07.mp3");
+const params = new URLSearchParams(window.location.search);
+
+let focusMinutes = Number(params.get("minutes")) || 25;
+let breakMinutes = Number(params.get("break")) || 5;
+let timerName = params.get("name") || "Pomodoro";
+
+let isBreak = false;
+let seconds = focusMinutes * 60;
+let startingSeconds = seconds;
+
+let interval = null;
+let endTime = null;
+
+document.getElementById("timer-name").textContent = timerName;
+document.getElementById("timer-info").textContent =
+    `${focusMinutes} min focus • ${breakMinutes} min break`;
+
+function updateDisplay() {
+    let min = Math.floor(seconds / 60);
+    let sec = seconds % 60;
+
+    document.getElementById("timer").textContent =
+        `${min}:${sec.toString().padStart(2, "0")}`;
+
+    let percentLeft = (seconds / startingSeconds) * 100;
+    document.getElementById("coffee-liquid").style.height = percentLeft + "%";
+}
+
+function hideNotification() {
+    const notif = document.getElementById("timer-notification");
+
+    if (notif) {
+        notif.classList.remove("show");
+
+        if (notif.hideTimeout) {
+            clearTimeout(notif.hideTimeout);
+        }
+    }
+}
+
+function showNotification(message) {
+    const notif = document.getElementById("timer-notification");
+
+    if (notif) {
+        notif.textContent = message;
+        notif.classList.add("show");
+
+        if (notif.hideTimeout) {
+            clearTimeout(notif.hideTimeout);
+        }
+
+        notif.hideTimeout = setTimeout(() => {
+            notif.classList.remove("show");
+        }, 10000);
+    }
+
+    if ("Notification" in window && Notification.permission === "granted") {
+        const browserNotification = new Notification(message);
+
+        setTimeout(() => {
+            browserNotification.close();
+        }, 10000);
+    }
+}
+
+function startNextTimer() {
+    clearInterval(interval);
+    interval = null;
+    endTime = null;
+
+    hideNotification();
+
+    if (!isBreak) {
+        fetch("{% url 'complete_focus_session' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `minutes=${focusMinutes}`
+        });
+
+        isBreak = true;
+        seconds = breakMinutes * 60;
+        startingSeconds = seconds;
+
+        document.getElementById("timer-name").textContent = "Break Time";
+        document.getElementById("timer-info").textContent =
+            `${breakMinutes} min break`;
+
+        showNotification("⏰ Focus done! Take a break.");
+    } else {
+        isBreak = false;
+        seconds = focusMinutes * 60;
+        startingSeconds = seconds;
+
+        document.getElementById("timer-name").textContent = timerName;
+        document.getElementById("timer-info").textContent =
+            `${focusMinutes} min focus • ${breakMinutes} min break`;
+
+        showNotification("☕ Break done! Time to lock in.");
+    }
+
+    updateDisplay();
+    startTimer();
+}
+
+function tick() {
+    seconds = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+    updateDisplay();
+
+    if (seconds <= 0) {
+        startNextTimer();
+    }
+}
+
+function startTimer() {
+    hideNotification();
+
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+
+    if (interval) return;
+
+    endTime = Date.now() + seconds * 1000;
+    interval = setInterval(tick, 250);
+    tick();
+}
+
+function pauseTimer() {
+    clearInterval(interval);
+    interval = null;
+
+    if (endTime) {
+        seconds = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+    }
+
+    endTime = null;
+    updateDisplay();
+}
+
+function resetTimer() {
+    clearInterval(interval);
+    interval = null;
+    endTime = null;
+
+    isBreak = false;
+    seconds = focusMinutes * 60;
+    startingSeconds = seconds;
+
+    document.getElementById("timer-name").textContent = timerName;
+    document.getElementById("timer-info").textContent =
+        `${focusMinutes} min focus • ${breakMinutes} min break`;
+
+    hideNotification();
+    updateDisplay();
+}
+
+updateDisplay();
+</script>
+
+{% endblock %}
